@@ -151,7 +151,27 @@ public:
 		encoder.position = p;
 	}
 #endif
+	// From https://github.com/linorobot/linorobot/blob/master/teensy/firmware/lib/encoder/Encoder.h
+	int readRPM(int counts_per_rev){
+		long encoder_ticks = read();
+		
+		//this function calculates the motor's RPM based on encoder ticks and delta time
+		unsigned long current_time = millis();
+		unsigned long dt = current_time - prev_update_time_;
+
+		//convert the time from milliseconds to minutes
+		double dtm = (double)dt / 60000;
+		double delta_ticks = encoder_ticks - prev_encoder_ticks_;
+
+		//calculate wheel's speed (RPM)
+		prev_update_time_ = current_time;
+		prev_encoder_ticks_ = encoder_ticks;
+		
+		return (delta_ticks / counts_per_rev) / dtm;
+	}
 private:
+	unsigned long prev_update_time_;
+        long prev_encoder_ticks_;
 	Encoder_internal_state_t encoder;
 #ifdef ENCODER_USE_INTERRUPTS
 	uint8_t interrupts_in_use;
